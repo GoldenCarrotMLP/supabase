@@ -37,11 +37,18 @@ const SqlEditor: NextPageWithLayout = () => {
 
   const tabId = !!id ? tabs.openTabs.find((x) => x.endsWith(id)) : undefined
 
-  // [Joshen] May need to investigate separately, but occasionally addSnippet doesnt exist in
-  // the snapV2 valtio store for some reason hence why the added typeof check here
+  console.log('[SqlEditor] params', { id, ref, content, skip })
+  console.log('[SqlEditor] previousRoute', previousRoute)
+  console.log('[SqlEditor] project', project)
+  console.log('[SqlEditor] allSnippets', allSnippets)
+  console.log('[SqlEditor] found snippet', snippet)
+  console.log('[SqlEditor] tabId', tabId)
+
   const canFetchContentBasedOnId = Boolean(
     id !== 'new' && typeof snapV2.addSnippet === 'function' && !snippet?.isNotSavedInDatabaseYet
   )
+  console.log('[SqlEditor] canFetchContentBasedOnId', canFetchContentBasedOnId)
+
   const { data, error, isError } = useContentIdQuery(
     { projectRef: ref, id },
     {
@@ -50,51 +57,60 @@ const SqlEditor: NextPageWithLayout = () => {
     }
   )
 
-  const snippetMissing =
-    isError && error.code === 404 && error.message.includes('Content not found')
-  const invalidId = isError && error.code === 400 && error.message.includes('Invalid uuid')
+  console.log('[SqlEditor] useContentIdQuery result', { data, error, isError })
 
-  // [Joshen] Atm we suspect that replication lag is causing this to happen whereby a newly created snippet
-  // shows the "Unable to find snippet" error which blocks the whole UI
-  // Am opting to silently swallow this error, since the saves are still going through and we're scoping this behaviour
-  // behaviour down to a very specific use case too with all these conditionals
-  // More details: https://github.com/supabase/supabase/pull/39389
+  const snippetMissing =
+    isError && error?.code === 404 && error?.message?.includes('Content not found')
+  const invalidId = isError && error?.code === 400 && error?.message?.includes('Invalid uuid')
+
+  console.log('[SqlEditor] snippetMissing', snippetMissing)
+  console.log('[SqlEditor] invalidId', invalidId)
+
   const snippetMissingImmediatelyAfterCreating =
     !!snippet && snippetMissing && previousRoute === 'new' && 'isNotSavedInDatabaseYet' in snippet
 
+  console.log('[SqlEditor] snippetMissingImmediatelyAfterCreating', snippetMissingImmediatelyAfterCreating)
+
   useEffect(() => {
+    console.log('[SqlEditor][useEffect:data]', { ref, data, project })
     if (ref && data && project) {
-      // [Joshen] Check if snippet belongs to the current project
+      console.log('[SqlEditor][useEffect:data] checking project match', {
+        IS_PLATFORM,
+        dataProjectId: data.project_id,
+        projectId: project.id,
+      })
       if (!IS_PLATFORM || data.project_id === project.id) {
+        console.log('[SqlEditor][useEffect:data] setting snippet in snapV2')
         snapV2.setSnippet(ref, data as unknown as SnippetWithContent)
       } else {
+        console.warn('[SqlEditor][useEffect:data] project mismatch, redirecting')
         setLastVisitedSnippet(undefined)
         router.push(`/project/${ref}/sql/new`)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, data, project])
 
-  // Load the last visited snippet when landing on /new
   useEffect(() => {
+    console.log('[SqlEditor][useEffect:new]', { id, skip, history, content })
     if (
       id === 'new' &&
-      skip !== 'true' && // [Joshen] Skip flag implies to skip loading the last visited snippet
+      skip !== 'true' &&
       history.sql !== undefined &&
       content === undefined
     ) {
       const snippet = allSnippets.find((snippet) => snippet.id === history.sql)
+      console.log('[SqlEditor][useEffect:new] found last visited snippet', snippet)
       if (snippet !== undefined) router.push(`/project/${ref}/sql/${history.sql}`)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, allSnippets, content])
 
-  // Watch for route changes
   useEffect(() => {
+    console.log('[SqlEditor][useEffect:route]', { isReady: router.isReady, id })
     if (!router.isReady || !id || id === 'new') return
 
     const tabId = createTabId('sql', { id })
     const snippet = allSnippets.find((x) => x.id === id)
+    console.log('[SqlEditor][useEffect:route] adding tab', { tabId, snippet })
 
     tabs.addTab({
       id: tabId,
@@ -105,10 +121,10 @@ const SqlEditor: NextPageWithLayout = () => {
         name: snippet?.name,
       },
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.isReady, id])
 
   if ((snippetMissing || invalidId) && !snippetMissingImmediatelyAfterCreating) {
+    console.warn('[SqlEditor] snippet missing or invalid id', { id, snippetMissing, invalidId })
     return (
       <div className="flex items-center justify-center h-full">
         <div className="w-[400px]">
@@ -122,6 +138,7 @@ const SqlEditor: NextPageWithLayout = () => {
                 type="default"
                 className="mt-2"
                 onClick={() => {
+                  console.log('[SqlEditor] closing tab', { tabId })
                   tabs.handleTabClose({
                     id: tabId,
                     router,
@@ -137,7 +154,10 @@ const SqlEditor: NextPageWithLayout = () => {
                 asChild
                 type="default"
                 className="mt-2"
-                onClick={() => setLastVisitedSnippet(undefined)}
+                onClick={() => {
+                  console.log('[SqlEditor] heading back to project root')
+                  setLastVisitedSnippet(undefined)
+                }}
               >
                 <Link href={`/project/${ref}/sql`}>Head back</Link>
               </Button>
@@ -148,6 +168,7 @@ const SqlEditor: NextPageWithLayout = () => {
     )
   }
 
+  console.log('[SqlEditor] rendering SQLEditor')
   return <SQLEditor />
 }
 

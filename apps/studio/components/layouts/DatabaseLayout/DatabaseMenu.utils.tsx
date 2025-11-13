@@ -2,7 +2,7 @@ import { ArrowUpRight } from 'lucide-react'
 
 import type { ProductMenuGroup } from 'components/ui/ProductMenu/ProductMenu.types'
 import type { Project } from 'data/projects/project-detail-query'
-import { IS_PLATFORM } from 'lib/constants'
+
 
 export const generateDatabaseMenu = (
   project?: Project,
@@ -10,8 +10,8 @@ export const generateDatabaseMenu = (
     pgNetExtensionExists: boolean
     pitrEnabled: boolean
     columnLevelPrivileges: boolean
-    showPgReplicate: boolean
     enablePgReplicate: boolean
+    showPgReplicate: boolean
     showRoles: boolean
     showWrappers: boolean
   }
@@ -21,8 +21,8 @@ export const generateDatabaseMenu = (
     pgNetExtensionExists,
     pitrEnabled,
     columnLevelPrivileges,
-    showPgReplicate,
     enablePgReplicate,
+    showPgReplicate,
     showRoles,
     showWrappers,
   } = flags || {}
@@ -75,6 +75,16 @@ export const generateDatabaseMenu = (
           url: `/project/${ref}/database/publications`,
           items: [],
         },
+        ...(showPgReplicate
+          ? [
+              {
+                name: 'ETL Replication',
+                key: 'etl',
+                url: `/project/${ref}/database/etl`,
+                items: [],
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -106,18 +116,7 @@ export const generateDatabaseMenu = (
     {
       title: 'Platform',
       items: [
-        ...(showPgReplicate
-          ? [
-              {
-                name: 'Replication',
-                key: 'replication',
-                url: `/project/${ref}/database/replication`,
-                label: enablePgReplicate ? 'New' : undefined,
-                items: [],
-              },
-            ]
-          : []),
-        ...(IS_PLATFORM
+        ...(true
           ? [
               {
                 name: 'Backups',
@@ -179,7 +178,7 @@ export const generateDatabaseMenu = (
         {
           name: 'Query Performance',
           key: 'query-performance',
-          url: `/project/${ref}/observability/query-performance`,
+          url: `/project/${ref}/reports/query-performance`,
           rightIcon: <ArrowUpRight strokeWidth={1} className="h-4 w-4" />,
           items: [],
         },

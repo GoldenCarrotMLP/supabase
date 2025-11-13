@@ -1,12 +1,14 @@
-export type ProviderName = 'bedrock' | 'openai' | 'anthropic'
+export type ProviderName = 'bedrock' | 'openai' | 'anthropic' | 'google'
 
 export type BedrockModel = 'anthropic.claude-3-7-sonnet-20250219-v1:0' | 'openai.gpt-oss-120b-1:0'
 
 export type OpenAIModel = 'gpt-5' | 'gpt-5-mini'
 
+export type GeminiModel = 'gemini-flash-latest' | 'gemini-2.5-pro' | 'gemini-flash-lite-latest'
+
 export type AnthropicModel = 'claude-sonnet-4-20250514' | 'claude-3-5-haiku-20241022'
 
-export type Model = BedrockModel | OpenAIModel | AnthropicModel
+export type Model = BedrockModel | OpenAIModel | GeminiModel | AnthropicModel
 
 export type ProviderModelConfig = {
   /** Optional providerOptions to attach to the system message for this model */
@@ -24,6 +26,12 @@ export type ProviderRegistry = {
     models: Record<OpenAIModel, ProviderModelConfig>
     providerOptions?: Record<string, any>
   }
+
+  google: {
+    models: Record<GeminiModel, ProviderModelConfig>
+    providerOptions?: Record<string, any>
+  }
+
   anthropic: {
     models: Record<AnthropicModel, ProviderModelConfig>
     providerOptions?: Record<string, any>
@@ -56,6 +64,13 @@ export const PROVIDERS: ProviderRegistry = {
       openai: {
         reasoningEffort: 'minimal',
       },
+    },
+  },
+    google: {
+    models: {
+      'gemini-flash-latest': { default: true },
+      'gemini-2.5-pro': { default: false },
+      'gemini-flash-lite-latest': { default: false },
     },
   },
   anthropic: {

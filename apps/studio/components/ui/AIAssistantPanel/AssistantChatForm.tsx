@@ -8,7 +8,7 @@ import { ButtonTooltip } from '../ButtonTooltip'
 import { type SqlSnippet } from './AIAssistant.types'
 import { ModelSelector } from './ModelSelector'
 import { getSnippetContent, SnippetRow } from './SnippetRow'
-
+import { Model } from 'lib/ai/model.utils'  
 export interface FormProps {
   /* The ref for the textarea, optional. Exposed for the CommandsPopover to attach events. */
   textAreaRef?: React.RefObject<HTMLTextAreaElement>
@@ -45,9 +45,9 @@ export interface FormProps {
   /* If currently editing an existing message */
   isEditing?: boolean
   /* The currently selected AI model */
-  selectedModel: 'gpt-5' | 'gpt-5-mini'
+  selectedModel: Model
   /* Callback when a model is chosen */
-  onSelectModel: (model: 'gpt-5' | 'gpt-5-mini') => void
+  onSelectModel: (model: Model) => void
 }
 
 const AssistantChatFormComponent = forwardRef<HTMLFormElement, FormProps>(

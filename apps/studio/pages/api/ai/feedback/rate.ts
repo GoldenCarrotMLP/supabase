@@ -92,7 +92,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const { model, error: modelError } = await getModel({
-      provider: 'openai',
+ //     provider: 'openai',
       isLimited: true,
       routingKey: 'feedback',
     })

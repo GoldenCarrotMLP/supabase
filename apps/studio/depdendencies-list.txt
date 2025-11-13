@@ -1,0 +1,7 @@
+rsync -av ~/regrade/apps/studio-override/ ~/supabase/apps/studio/
+
+# Runtime dependencies (latest versions)
+sudo pnpm install @ai-sdk/google configcat-js jsonwebtoken --filter studio
+
+# Dev dependency (latest version)
+sudo pnpm install -D @types/jsonwebtoken --filter studio

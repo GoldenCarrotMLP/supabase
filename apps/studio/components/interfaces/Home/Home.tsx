@@ -200,7 +200,7 @@ export const Home = () => {
                   )}
                 </div>
               )}
-              {IS_PLATFORM && project?.status === PROJECT_STATUS.ACTIVE_HEALTHY && (
+              {project?.status === PROJECT_STATUS.ACTIVE_HEALTHY && (
                 <div className="ml-6 border-l flex items-center w-[145px] justify-end">
                   <ServiceStatus />
                 </div>
@@ -214,7 +214,7 @@ export const Home = () => {
       <>
         <div className="py-16 border-b border-muted">
           <div className="mx-auto max-w-7xl space-y-16 @container">
-            {IS_PLATFORM && project?.status !== PROJECT_STATUS.INACTIVE && (
+            {project?.status !== PROJECT_STATUS.INACTIVE && (
               <>{isNewProject ? <NewProjectPanel /> : <ProjectUsageSection />}</>
             )}
             {!isNewProject && project?.status !== PROJECT_STATUS.INACTIVE && <AdvisorWidget />}
