@@ -95,7 +95,7 @@ export function getLogQuery(service: LogsService, limit: number = 100): string {
         from postgres_logs
         cross join unnest(metadata) as m
         cross join unnest(m.parsed) as parsed
-        order by timestamp desc
+        order by id desc
         limit ${limit};
       `
     }

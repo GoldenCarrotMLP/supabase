@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { get, handleError } from 'data/fetchers'
-import type { ResponseError, UseCustomQueryOptions } from 'types'
+import type { ResponseError } from 'types'
+import { IS_PLATFORM } from 'lib/constants'  
 import { replicationKeys } from './keys'
 import { checkReplicationFeatureFlagRetry } from './utils'
 

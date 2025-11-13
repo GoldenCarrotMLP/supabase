@@ -1,3 +1,4 @@
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { openai } from '@ai-sdk/openai'
 import { LanguageModel } from 'ai'
 import { checkAwsCredentials, createRoutedBedrock } from './bedrock'
@@ -5,6 +6,7 @@ import {
   BedrockModel,
   Model,
   OpenAIModel,
+  GeminiModel,
   PROVIDERS,
   ProviderModelConfig,
   ProviderName,
@@ -58,6 +60,7 @@ export async function getModel({
   const hasAwsCredentials = await checkAwsCredentials()
   const hasAwsBedrockRoleArn = !!process.env.AWS_BEDROCK_ROLE_ARN
   const hasOpenAIKey = !!process.env.OPENAI_API_KEY
+  const hasGeminiKey = !!process.env.GEMINI_API_KEY
 
   // Auto-pick a provider if not specified defaulting to Bedrock
   if (!preferredProvider) {
@@ -65,6 +68,9 @@ export async function getModel({
       preferredProvider = 'bedrock'
     } else if (hasOpenAIKey) {
       preferredProvider = 'openai'
+    }
+    else if (hasGeminiKey) {
+      preferredProvider = 'google'
     }
   }
 
@@ -105,6 +111,20 @@ export async function getModel({
       providerOptions: providerRegistry.providerOptions,
     }
   }
+
+  if (preferredProvider === 'google') {  
+  if (!hasGeminiKey) {  
+    return { error: new Error('GEMINI_API_KEY not available') }  
+  }  
+  const google = createGoogleGenerativeAI({  
+    apiKey: process.env.GEMINI_API_KEY,  
+  })  
+  return {  
+    model: google(chosenModelId as GeminiModel),  
+    promptProviderOptions: models[chosenModelId as GeminiModel]?.promptProviderOptions,  
+    providerOptions: providerRegistry.providerOptions,  
+  }  
+}
 
   return { error: new Error(`Unsupported provider: ${preferredProvider}`) }
 }

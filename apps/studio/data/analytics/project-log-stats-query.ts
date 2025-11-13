@@ -38,9 +38,7 @@ export async function getProjectLogStats(
     {
       params: {
         path: { ref: projectRef },
-        query: {
-          interval,
-        },
+        query: { interval },
       },
       signal,
     }
@@ -48,7 +46,28 @@ export async function getProjectLogStats(
 
   if (error) handleError(error)
 
-  return data as unknown as ProjectLogStatsResponse
+  // Transform the raw API response into your expected shape
+  const transformed: ProjectLogStatsResponse = {
+    result: (data?.result ?? []).map((row: any) => ({
+      timestamp: Array.isArray(row.timestamp)
+        ? new Date(row.timestamp[0]).toISOString().slice(0, 19) // trim microseconds
+        : new Date(row.timestamp).toISOString().slice(0, 19),
+      total_auth_requests: Array.isArray(row.total_auth_requests)
+        ? Number(row.total_auth_requests[0])
+        : Number(row.total_auth_requests ?? 0),
+      total_realtime_requests: Array.isArray(row.total_realtime_requests)
+        ? Number(row.total_realtime_requests[0])
+        : Number(row.total_realtime_requests ?? 0),
+      total_rest_requests: Array.isArray(row.total_rest_requests)
+        ? Number(row.total_rest_requests[0])
+        : Number(row.total_rest_requests ?? 0),
+      total_storage_requests: Array.isArray(row.total_storage_requests)
+        ? Number(row.total_storage_requests[0])
+        : Number(row.total_storage_requests ?? 0),
+    })),
+  }
+
+  return transformed
 }
 
 export type ProjectLogStatsData = Awaited<ReturnType<typeof getProjectLogStats>>

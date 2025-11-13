@@ -73,7 +73,7 @@ const UtilityActions = ({
 
   return (
     <div className="inline-flex items-center justify-end gap-x-2">
-      {IS_PLATFORM && <SavingIndicator id={id} />}
+      {<SavingIndicator id={id} />}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -137,7 +137,7 @@ const UtilityActions = ({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {IS_PLATFORM && (
+        { (
           <Tooltip>
             <TooltipTrigger asChild>
               {isFavorite ? (

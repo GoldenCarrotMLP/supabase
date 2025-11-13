@@ -15,7 +15,7 @@ export const DEFAULT_PROJECT = {
   name: process.env.DEFAULT_PROJECT_NAME || 'Default Project',
   organization_id: 1,
   cloud_provider: 'localhost',
-  status: 'ACTIVE_HEALTHY',
+  //status: 'RESTORING',
   region: 'local',
   inserted_at: '2021-08-02T06:40:40.646Z',
 }

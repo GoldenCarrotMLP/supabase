@@ -69,7 +69,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       error: modelError,
       promptProviderOptions,
     } = await getModel({
-      provider: 'openai',
+      //provider: 'openai',
       routingKey: projectRef,
     })
 

@@ -12,7 +12,7 @@ import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
 
 import { LOCAL_STORAGE_KEYS } from 'common'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
-
+import { Model } from 'lib/ai/model.utils'  
 type SuggestionsType = {
   title: string
   prompts?: { label: string; description: string }[]
@@ -22,7 +22,7 @@ export type AssistantMessageType = MessageType
 
 export type SqlSnippet = string | { label: string; content: string }
 
-export type AssistantModel = 'gpt-5' | 'gpt-5-mini'
+export type AssistantModel = Model
 
 type ChatSession = {
   id: string

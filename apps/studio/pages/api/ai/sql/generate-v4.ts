@@ -13,7 +13,7 @@ import { getTools } from 'lib/ai/tools'
 import { getURL } from 'lib/helpers'
 import apiWrapper from 'lib/api/apiWrapper'
 import { executeQuery } from 'lib/api/self-hosted/query'
-
+import {Model} from "lib/ai/model.utils";
 export const maxDuration = 120
 
 export const config = {
@@ -52,7 +52,7 @@ const requestBodySchema = z.object({
   table: z.string().optional(),
   chatName: z.string().optional(),
   orgSlug: z.string().optional(),
-  model: z.enum(['gpt-5', 'gpt-5-mini']).optional(),
+  model: z.custom<Model>().optional(), 
 })
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
@@ -118,8 +118,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse) {
     promptProviderOptions,
     providerOptions,
   } = await getModel({
-    provider: 'openai',
-    model: requestedModel ?? 'gpt-5',
+//    provider: 'openai',
+ //   model: requestedModel ?? 'gpt-5',
     routingKey: projectRef,
     isLimited,
   })
