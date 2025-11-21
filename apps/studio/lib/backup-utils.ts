@@ -14,28 +14,10 @@ export function parseBackupTimestamp(filename: string): string | null {
   if (Number.isNaN(hour) || Number.isNaN(minute)) return null;
 
   try {
-    // Build a Date in NYC local time
-    const dt = new Date(`${date}T${hour.toString().padStart(2, '0')}:${minute
-      .toString()
-      .padStart(2, '0')}:00`);
-
-    // Format with NYC timezone offset
-    const tz = 'America/New_York';
-    const offsetMinutes = -dt
-      .toLocaleString('en-US', { timeZone: tz, timeZoneName: 'short' })
-      .includes('EDT')
-      ? 240
-      : 300;
-
-    const offsetHours = Math.floor(offsetMinutes / 60);
-    const offsetSign = '-';
-    const offsetStr = `${offsetSign}${offsetHours
-      .toString()
-      .padStart(2, '0')}:00`;
-
+    // Build a UTC timestamp string directly
     return `${date}T${hour.toString().padStart(2, '0')}:${minute
       .toString()
-      .padStart(2, '0')}:00${offsetStr}`;
+      .padStart(2, '0')}:00+00:00`;
   } catch {
     return null;
   }
