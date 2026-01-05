@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           COUNT(*) FILTER (WHERE (f0.body->'metadata'->'request'->>'path') ~ '/auth')     AS total_auth_requests,
           COUNT(*) FILTER (WHERE (f0.body->'metadata'->'request'->>'path') ~ '/realtime') AS total_realtime_requests
         FROM dates,
-             _analytics.log_events_8ab8b6ec_0f17_4e83_b024_ba89b0355bdf AS f0
+             _analytics.log_events_d4e343bd_4722_408c_bacd_22852e9fb22f AS f0
         WHERE (f0.body->>'project') = 'default'
           AND f0.timestamp >= (SELECT start FROM dates)
         GROUP BY ts_bucket
