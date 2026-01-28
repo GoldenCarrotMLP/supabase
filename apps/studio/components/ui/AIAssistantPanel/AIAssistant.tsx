@@ -1,6 +1,7 @@
 import type { UIMessage as MessageType } from '@ai-sdk/react'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai'
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Eraser, Pencil, X } from 'lucide-react'
 import { useRouter } from 'next/router'
@@ -13,6 +14,7 @@ import { SIDEBAR_KEYS } from 'components/layouts/ProjectLayout/LayoutSidebar/Lay
 import { useCheckOpenAIKeyQuery } from 'data/ai/check-api-key-query'
 import { useRateMessageMutation } from 'data/ai/rate-message-mutation'
 import { constructHeaders } from 'data/fetchers'
+import { constructHeaders } from 'data/fetchers'
 import { useTablesQuery } from 'data/tables/tables-query'
 import { useSendEventMutation } from 'data/telemetry/send-event-mutation'
 import { useLocalStorageQuery } from 'hooks/misc/useLocalStorage'
@@ -20,6 +22,8 @@ import { useOrgAiOptInLevel } from 'hooks/misc/useOrgOptedIntoAi'
 import { useSelectedOrganizationQuery } from 'hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from 'hooks/misc/useSelectedProject'
 import { useHotKey } from 'hooks/ui/useHotKey'
+import { prepareMessagesForAPI } from 'lib/ai/message-utils'
+import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
 import { prepareMessagesForAPI } from 'lib/ai/message-utils'
 import { BASE_PATH, IS_PLATFORM } from 'lib/constants'
 import { uuidv4 } from 'lib/helpers'
@@ -56,6 +60,7 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
   const { data: project } = useSelectedProjectQuery()
   const searchParams = useSearchParamsShallow()
 
+  const { data: selectedOrganization } =
   const { data: selectedOrganization } =
     useSelectedOrganizationQuery()
 
@@ -139,6 +144,18 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
       return plainMessage
     })
   }, [snap.activeChat?.messages])
+  const currentChat = snap.activeChat?.name
+
+  // Sanitize messages to remove Valtio proxy wrappers that can't be cloned
+  const sanitizedMessages = useMemo(() => {
+    if (!snap.activeChat?.messages) return undefined
+
+    return snap.activeChat.messages.map((msg: any) => {
+      // Convert proxy objects to plain objects
+      const plainMessage = JSON.parse(JSON.stringify(msg))
+      return plainMessage
+    })
+  }, [snap.activeChat?.messages])
 
   // Update context in state
   useEffect(() => {
@@ -166,6 +183,60 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
       ? { chat: snap.chatInstances[snap.activeChatId] }
       : {}),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    messages: sanitizedMessages,
+    async onToolCall({ toolCall }) {
+      if (toolCall.dynamic) {
+        return
+      }
+
+      if (toolCall.toolName === 'rename_chat') {
+        const { newName } = toolCall.input as { newName: string }
+
+        if (snap.activeChatId && newName?.trim()) {
+          snap.renameChat(snap.activeChatId, newName.trim())
+
+          addToolResult({
+            tool: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+            output: 'Chat renamed',
+          })
+        } else {
+          addToolResult({
+            tool: toolCall.toolName,
+            toolCallId: toolCall.toolCallId,
+            output: 'Failed to rename chat: Invalid chat or name',
+          })
+        }
+      }
+    },
+    transport: new DefaultChatTransport({
+      api: `${BASE_PATH}/api/ai/sql/generate-v4`,
+      async prepareSendMessagesRequest({ messages, ...options }) {
+        const cleanedMessages = prepareMessagesForAPI(messages)
+
+        const headerData = await constructHeaders()
+        const authorizationHeader = headerData.get('Authorization')
+        const headers: { [key: string]: string } = {}
+        if (authorizationHeader) {
+          headers['Authorization'] = authorizationHeader
+        }
+        return {
+          ...options,
+          body: {
+            messages: cleanedMessages,
+            aiOptInLevel,
+            projectRef: project?.ref,
+            connectionString: project?.connectionString,
+            schema: currentSchema,
+            table: currentTable?.name,
+            chatName: currentChat,
+            orgSlug: selectedOrganizationRef.current?.slug,
+            model: selectedModel,
+          },
+          headers: headers,
+        }
+      },
+    }),
     messages: sanitizedMessages,
     async onToolCall({ toolCall }) {
       if (toolCall.dynamic) {
@@ -609,6 +680,8 @@ export const AIAssistant = ({ className }: AIAssistantProps) => {
               description={
                 <Markdown
                   content={
+                    'Add your `OPENAI_API_KEY`, `GEMINI_API_KEY`, or AWS Bedrock credentials to your environment variables to use the AI Assistant.'  
+   }
                     'Add your `OPENAI_API_KEY`, `GEMINI_API_KEY`, or AWS Bedrock credentials to your environment variables to use the AI Assistant.'  
    }
                 />
